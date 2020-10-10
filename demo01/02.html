@@ -19,23 +19,20 @@
 <script src="../repository/three.js-r102/examples/js/loaders/DDSLoader.js"></script>
 <script src="../repository/three.js-r102/examples/js/loaders/MTLLoader.js"></script>
 <script>
-    let Obj = null;
     const scene = new THREE.Scene();
 
     const geometry = new THREE.BoxGeometry(100, 100, 100);
     const material = new THREE.MeshLambertMaterial({color: 0x0000ff});
     const mesh = new THREE.Mesh(geometry, material);
 
-    mesh.translateY(200);
-
-    // scene.add(mesh);
+    scene.add(mesh);
 
     const pointLight = new THREE.PointLight(0xffffff);
     pointLight.position.set(400, 200, 300);
     scene.add(pointLight);
 
     const ambientLight = new THREE.AmbientLight(0x444444);
-    scene.add(pointLight);
+    scene.add(ambientLight);
 
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -47,47 +44,12 @@
     camera.lookAt(scene.position);
 
 
-    // // instantiate a loader
-    // const loader = new THREE.OBJLoader();
-    // // load a resource
-    // loader.load(
-    // // resource URL
-    // '../model/oilcan.obj',
-    // // called when resource is loaded
-    // function ( object ) { scene.add( object ); },
-    // // called when loading is in progresses
-    // function ( xhr ) { console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' ); },
-    // // called when loading has errors
-    // function ( error ) { console.log( 'An error happened' ); } );
-
-    const mtlLoader = new THREE.MTLLoader();
-    //mtl材质加载器
-    mtlLoader.load('../model/oilcan2.mtl', mtl);
-
-    //加载.mtl文件，执行mtl函数
-    function mtl(material) {
-        const objLoader = new THREE.OBJLoader();
-        //obj模型加载器
-        objLoader.setMaterials(material);
-        //mtl材质赋值给obj模型
-        objLoader.load('../model/oilcan2.obj', obj);
-        //加载.obj文件，执行obj函数
-    }
-
     function obj(object3D) {
         // object3D.scale.set(100, 100, 100);
         //放大object3D对象
-        get3dObj(object3D);
         scene.add(object3D);
         //object3D对象插入场景对象
     }
-
-    function get3dObj(obj) {
-        console.log(obj)
-        Obj = obj;
-    }
-
-    console.log(Obj)
 
 
     const renderer = new THREE.WebGLRenderer();
@@ -98,12 +60,8 @@
     document.body.append(renderer.domElement);
 
     function render() {
-        // mesh.rotateX(0.01);
+        mesh.rotateX(0.01);
         // mesh.rotateY(0.01);
-        if (Obj) {
-            Obj.rotateY(0.01);
-            // Obj.rotateX(0.01);
-        }
         renderer.render(scene, camera);
         requestAnimationFrame(render);
     }
@@ -112,6 +70,34 @@
 
     const controls = new THREE.OrbitControls(camera);
     // controls.addEventListener("change",render);
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onMouseClick(event){
+
+        //将鼠标点击位置的屏幕坐标转换成threejs中的标准坐标
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = (event.clientY/window.innerHeight) *2 + 1;
+
+        // 通过鼠标点的位置和当前相机的矩阵计算出raycaster
+        raycaster.setFromCamera( mouse, camera );
+
+        console.log(raycaster)
+
+        // 获取raycaster直线和所有模型相交的数组集合
+        const intersects = raycaster.intersectObjects([scene.children[0]]);
+        console.log(intersects);
+
+        //将所有的相交的模型的颜色设置为红色
+        for (let i = 0; i < intersects.length; i++ ) {
+            intersects[ i ].object.material.color.set( 0xff0000 );
+
+        }
+    }
+
+    window.addEventListener( 'click', onMouseClick, false );
 
 </script>
 </body>
